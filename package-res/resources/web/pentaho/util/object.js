@@ -18,7 +18,8 @@ define(["pentaho/shim/env"], function(env) {
 
   var O_hasOwn = Object.prototype.hasOwnProperty,
       A_empty  = [],
-      setProtoOf = env.has["Object.setPrototypeOf"] ? Object.setPrototypeOf : (env.has["Object.prototype.__proto__"] ? setProtoProp : setProtoCopy);
+      setProtoOf = env.has["Object.setPrototypeOf"]      ? Object.setPrototypeOf :
+                  (env.has["Object.prototype.__proto__"] ? setProtoProp          : setProtoCopy);
 
   /**
    * The `object` namespace contains functions for
