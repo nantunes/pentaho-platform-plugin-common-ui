@@ -1137,7 +1137,7 @@ define([
              * Using the scene's group, preferably, because the datum (here the complex) may have dimensions
              * that are null in the groups' own atoms.
              */
-            if(this._nonMultiGemFilter(gem) &&
+            if(gem.cccDimName && this._nonMultiGemFilter(gem) &&
                !(this.chart._hideNullMembers && this._isNullMember(context.scene.group || complex, gem))) {
                 this.base.apply(this, arguments);
             }
@@ -3237,7 +3237,7 @@ define([
         },
 
         _configureAxisDisplayUnits: function(primary, axisType, allowFractional){
-            if(!allowFractional) {
+            if(!allowFractional && axisType != 'ortho') {
                 this.options[axisType + 'AxisTickExponentMin'] = 0; // 10^0 => 1
             }
 

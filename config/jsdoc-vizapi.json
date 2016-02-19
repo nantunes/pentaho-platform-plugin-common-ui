@@ -3,26 +3,26 @@
     "allowUnknownTags": true
   },
   "source": {
-    "include": ["package-res/resources/web/visual/data"],
+    "include": [
+      "package-res/resources/web/pentaho/i18n.js",
+      "package-res/resources/web/pentaho/service.js",
+      "package-res/resources/web/pentaho/_doc",
+      "package-res/resources/web/pentaho/lang",
+      "package-res/resources/web/pentaho/util",
+      "package-res/resources/web/pentaho/type",
+      "package-res/resources/web/pentaho/visual/_doc/_namespace.jsdoc",
+      "package-res/resources/web/pentaho/visual/base"
+    ],
+    "exclude": [],
     "includePattern": ".+\\.js(doc)?$"
   },
-  "plugins": ["plugins/markdown"],
+  "plugins": ["plugins/markdown", "customPlugins/amd"],
   "templates": {
     "cleverLinks": true,
-    "monospaceLinks": false,
-    "default": {
-      "outputSourceFiles": true,
-      "includeDate": true,
-      "layoutFile": "../build-res/jsdoc-template/layout.tmpl",
-      "staticFiles": {
-        "include": [
-          "build-res/jsdoc-template/static"
-        ]
-      }
-    }
+    "monospaceLinks": false
   },
   "opts": {
-    "template": "templates/default",
+    "template": "../build-res/jsdoc-template",
     "encoding": "utf8",
     "destination": "doc-js/vizapi",
     "recurse": true,
