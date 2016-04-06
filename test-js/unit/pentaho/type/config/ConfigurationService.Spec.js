@@ -202,6 +202,7 @@ define([
     });
 
     describe("selecting", function() {
+      describe("types", function() {
       var configurationService;
 
       beforeEach(function() {
@@ -231,16 +232,89 @@ define([
         );
       });
 
-      it("should return null if no rule applies", function() {
+        it("should return null if no rule applies to type", function() {
         expect(configurationService.select("C")).toBeNull();
       });
 
-      it("should return config if rule applies", function() {
+        it("should return config if rule applies to type", function() {
         expect(configurationService.select("A").testId).toEqual("A");
       });
 
       it("should convert from short IDs to full IDs", function() {
         expect(configurationService.select("A").testId).toEqual(configurationService.select("pentaho/type/A").testId);
+      });
+    });
+
+      describe("filtering", function() {
+        var configurationService;
+
+        beforeEach(function() {
+          configurationService = new ConfigurationService();
+
+          configurationService.add(
+            {
+              rules: [
+                {
+                  select: {
+                    type: "A",
+                    user: "1"
+                  },
+                  apply: {
+                    testId: "A1"
+                  }
+                },
+                {
+                  select: {
+                    type: "A",
+                    user: "2"
+                  },
+                  apply: {
+                    testId: "A2"
+                  }
+                },
+                {
+                  select: {
+                    type: "A",
+                    user: ["3", "4"]
+                  },
+                  apply: {
+                    testId: "A3"
+                  }
+                },
+                {
+                  select: {
+                    type: "A",
+                    user: ["4", "5"],
+                    theme: "white"
+                  },
+                  apply: {
+                    testId: "A4"
+                  }
+                },
+                {
+                  select: {
+                    type: "B"
+                  },
+                  apply: {
+                    testId: "B"
+                  }
+                }
+              ]
+            }
+          );
+        });
+
+        it("should return null if no select rule applies to criteria", function() {
+          expect(configurationService.select("A", {user: "-1", theme: "white"})).toBeNull();
+        });
+
+        it("should return config if single-value select rule applies to criteria", function() {
+          expect(configurationService.select("A", {user: "2", theme: "white"})).not.toBeNull();
+        });
+
+        it("should return config if multi-value select rule applies to criteria", function() {
+          expect(configurationService.select("A", {user: "3", theme: "white"})).not.toBeNull();
+        });
       });
     });
 

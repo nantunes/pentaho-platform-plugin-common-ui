@@ -51,6 +51,29 @@ define([
     return r1._ordinal > r2._ordinal ? 1 : -1;
   }
 
+  function _ruleFilterer(rule) {
+    // The expected value of `this` is the criteria object
+
+    var select = rule.select || {};
+    for (var i = 0, ic = _selectCriteria.length; i !== ic; ++i) {
+      var key = _selectCriteria[i];
+
+      var possibleValues = select[key];
+
+      if (possibleValues != null) {
+        var criteriaValue = this[key];
+
+        var multi = Array.isArray(possibleValues);
+        if (!multi && possibleValues !== criteriaValue ||
+          multi && possibleValues.indexOf(criteriaValue) === -1) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   var _ruleCounter = 0;
 
   var ConfigurationService = Base.extend("pentaho.type.config.ConfigurationService", {
@@ -99,18 +122,16 @@ define([
     select: function(typeId, criteria) {
       var type = toAbsTypeId(typeId);
 
-      // TODO Select the apropriate rules, merge them and return
+      var rules = this._ruleStore[type] || [];
+      var filtered_rules = rules.filter(_ruleFilterer, criteria || {});
+      var configs = filtered_rules.map(function(rule) {
+        return rule.apply;
+      });
 
+      // TODO Merge and return
       // Temporary placeholder mock implementation
-      // always return first configuration (or empty, if none)
-      var configs = [];
-      if (this._ruleStore[type]) {
-        configs = this._ruleStore[type].map(function(rule) {
-          return rule.apply;
-        });
-      }
-
-      return configs.length === 0 ? null : configs[0];
+      // always return last configuration (or empty, if none)
+      return configs.length === 0 ? null : configs.pop();
     }
   });
 
