@@ -53,7 +53,7 @@ define([
    * The ordinal value of the next rule that is registered.
    *
    * This is used as the fallback rule order.
-   * Ensures sorting algorithm stability (as insertion order would be lost on resorts).
+   * Ensures sorting algorithm stability, because insertion order would be lost during a re-sort.
    *
    * @type {number}
    * @see pentaho.type.config.ConfigurationService#addRule
@@ -79,7 +79,7 @@ define([
 
     constructor: function() {
       /**
-       * A map from value type absolute id to
+       * A map connecting a value type's absolute id to
        * the applicable type configuration rules,
        * ordered from least to most specific.
        *
@@ -156,7 +156,7 @@ define([
 
   //region compare and select
   /**
-   * Compares two type configuration rules according to specificity.
+   * Compares two type-configuration rules according to specificity.
    *
    * @param {pentaho.type.spec.ITypeConfigurationRule} r1 - The first type configuration rule.
    * @param {pentaho.type.spec.ITypeConfigurationRule} r2 - The second type configuration rule.

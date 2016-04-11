@@ -25,10 +25,10 @@ define([
 
   /**
    * @classDesc The `AmdLoadedConfigurationService` class is an implementation of
-   * the {@link pentaho.type.IConfigurationService} interface that
-   * contains, preloaded,
-   * all of the value type configurations that are registered as providing the
-   * service {@link pentaho.type.spec.ITypeConfiguration} (see {@link pentaho.service}).
+   * the {@link pentaho.type.IConfigurationService} interface.
+   * This class contains (preloaded) all of the value type configurations that
+   * are registered as providing the service {@link pentaho.type.spec.ITypeConfiguration}
+   * (see {@link pentaho.service}).
    *
    * The registered AMD modules are first sorted by their module id, and only then added as configurations,
    * so that the rules' specificity documented in {@link pentaho.type.spec.ITypeConfiguration} is respected.

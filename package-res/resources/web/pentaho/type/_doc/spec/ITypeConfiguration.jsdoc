@@ -84,15 +84,15 @@
  *
  * ### Rule's Configuration Merging
  *
- * Type configuration rules specify a _configuration_ _per se_
+ * Type configuration rules specify a _configuration_
  * in its [apply]{@link pentaho.type.spec.ITypeConfigurationRule#apply} property.
  *
- * When merging two configurations, the default behavior is that:
- * 1. When both configurations contain a plain JavaScript object,
+ * When merging two configurations, the default behavior works this way:
+ * 1. If both configurations contain a plain JavaScript object,
  *    in the same property, the two are deeply merged
  * 2. All other values, such as arrays, `null`, `undefined` or objects of custom classes, are replaced.
  *
- * To allow overriding the default merge behaviour,
+ * To allow overriding the default merge behavior,
  * the following object syntax is supported in the place where any value would be:
  *
  * ```js

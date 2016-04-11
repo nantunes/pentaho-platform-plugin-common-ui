@@ -26,7 +26,7 @@ define([
    * that is registered as implementing the service {@link pentaho.type.IConfigurationService}
    * (see {@link pentaho.service}).
    *
-   * The default, system AMD registration registers the class
+   * The default system AMD registration registers the class
    * {@link pentaho.type.config.AmdLoadedConfigurationService}.
    *
    * @name pentaho.type.configurationService
