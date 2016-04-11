@@ -21,6 +21,15 @@ define([
 ], function(Base, SortedList, O, error) {
   "use strict";
 
+  /**
+   * List of names of context variables that are handled "generically" when sorting rules.
+   * More specific first.
+   *
+   * @type {string[]}
+   * @see pentaho.spec.IContextVars
+   * @see _ruleComparer
+   * @see _ruleFilterer
+   */
   var _selectCriteria = [
     "user",
     "theme",
@@ -28,6 +37,134 @@ define([
     "application"
   ];
 
+  /**
+   * Map of merge operation name to operation handler function.
+   *
+   * @type {Object.<string, function>}
+   * @see mergeSpecsOne
+   */
+  var _mergeHandlers = {
+    "replace": mergeSpecsOperReplace,
+    "merge": mergeSpecsOperMerge,
+    "add": mergeSpecsOperAdd
+  };
+
+  /**
+   * The ordinal value of the next rule that is registered.
+   *
+   * This is used as the fallback rule order.
+   * Ensures sorting algorithm stability (as insertion order would be lost on resorts).
+   *
+   * @type {number}
+   * @see pentaho.type.config.ConfigurationService#addRule
+   */
+  var _ruleCounter = 0;
+
+  /**
+   * @classDesc The `ConfigurationService` class is the base implementation of
+   * the {@link pentaho.type.IConfigurationService} interface.
+   *
+   * @class
+   * @alias ConfigurationService
+   * @memberOf pentaho.type.config
+   * @amd pentaho/type/config/ConfigurationService
+   *
+   * @extends pentaho.lang.Base
+   * @implements pentaho.type.IConfigurationService
+   *
+   * @description Creates a configuration service instance with no registrations.
+   */
+  var ConfigurationService = Base.extend("pentaho.type.config.ConfigurationService",
+  /** @lends pentaho.type.config.ConfigurationService# */{
+
+    constructor: function() {
+      /**
+       * A map from value type absolute id to
+       * the applicable type configuration rules,
+       * ordered from least to most specific.
+       *
+       * @type {Object.<string, Array.<pentaho.type.spec.ITypeConfigurationRule>>}
+       * @private
+       */
+      this._ruleStore = {};
+    },
+
+    /** @inheritdoc */
+    add: function(config) {
+      if (config.rules) {
+        config.rules.forEach(function(rule) {
+          this.addRule(rule);
+        }, this);
+      }
+    },
+
+    /**
+     * Adds a type configuration rule.
+     *
+     * The insertion order is used as the fallback rule order.
+     * For more information on the specificity of rules,
+     * see [spec.ITypeConfiguration]{@link pentaho.type.spec.ITypeConfiguration}.
+     *
+     * Note that the specified rule object may be slightly modified to serve
+     * the service's internal needs.
+     *
+     * @param {!pentaho.type.spec.ITypeConfigurationRule} rule The type configuration rule to add.
+     */
+    addRule: function(rule) {
+      // Assuming the ConfigurationService takes ownership of
+      // the rules, so mutating it directly is ok
+      rule._ordinal = _ruleCounter++;
+
+      var select = rule.select || {};
+      var typeIds = select.type || ["pentaho/type/value"];
+      if (!Array.isArray(typeIds)) {
+        typeIds = [typeIds];
+      }
+
+      typeIds.forEach(function(typeId) {
+        var type = toAbsTypeId(typeId);
+
+        if (!this._ruleStore[type]) {
+          this._ruleStore[type] = new SortedList({"comparer": _ruleComparer});
+        }
+
+        this._ruleStore[type].push(rule);
+      }, this);
+    },
+
+    /** @inheritdoc */
+    select: function(typeId, contextVars) {
+      var type = toAbsTypeId(typeId);
+
+      var rules = this._ruleStore[type] || [];
+      var filtered_rules = rules.filter(_ruleFilterer, contextVars || {});
+      var configs = filtered_rules.map(function(rule) {
+        return rule.apply;
+      });
+
+      if (configs.length === 0) {
+        return null;
+      }
+
+      var config = configs.reduce(mergeSpecsInto, {});
+
+      return config;
+    }
+  });
+
+  return ConfigurationService;
+
+  //region compare and select
+  /**
+   * Compares two type configuration rules according to specificity.
+   *
+   * @param {pentaho.type.spec.ITypeConfigurationRule} r1 - The first type configuration rule.
+   * @param {pentaho.type.spec.ITypeConfigurationRule} r2 - The second type configuration rule.
+   *
+   * @return {number} `-1`, if `r1` is more specific than `r2`,
+   * `1`, if `r2` is more specific than `r1`,
+   * and `0` if they have the same specificity.
+   */
   function _ruleComparer(r1, r2) {
     var priority1 = r1.priority || 0;
     var priority2 = r2.priority || 0;
@@ -53,8 +190,15 @@ define([
     return r1._ordinal > r2._ordinal ? 1 : -1;
   }
 
+  /**
+   * Determines if a given rule is selected by the current context variables.
+   *
+   * @param {pentaho.type.spec.ITypeConfigurationRule} rule - A type configuration rule to check.
+   * @this pentaho.spec.IContextVars
+   * @return {boolean} `true` if `rule` is selected, `false`, otherwise.
+   */
   function _ruleFilterer(rule) {
-    // The expected value of `this` is the criteria object
+    /*jshint validthis:true*/
 
     var select = rule.select || {};
     for (var i = 0, ic = _selectCriteria.length; i !== ic; ++i) {
@@ -67,7 +211,7 @@ define([
 
         var multi = Array.isArray(possibleValues);
         if (!multi && possibleValues !== criteriaValue ||
-          multi && possibleValues.indexOf(criteriaValue) === -1) {
+            multi && possibleValues.indexOf(criteriaValue) === -1) {
           return false;
         }
       }
@@ -75,13 +219,9 @@ define([
 
     return true;
   }
+  //endregion
 
-  var _mergeHandlers = {
-    "replace": mergeSpecsOperReplace,
-    "merge": mergeSpecsOperMerge,
-    "add": mergeSpecsOperAdd
-  };
-
+  //region merge
   /**
    * Merges a value type configuration specification into another.
    *
@@ -90,16 +230,10 @@ define([
    * The latter is actually deep-cloned, whenever full-subtrees are set at a target place,
    * to prevent future merges from inadvertently changing the source's internal structures.
    *
-   * @alias _mergeSpecsInto
-   * @memberOf pentaho.type.ConfigurationService#
-   * @method
-   *
    * @param {!pentaho.type.spec.IValueTypeProto} typeSpecTarget The target specification.
    * @param {!pentaho.type.spec.IValueTypeProto} typeSpecSource The source specification.
    *
    * @return {pentaho.type.spec.IValueTypeProto} The target specification.
-   *
-   * @protected
    */
   function mergeSpecsInto(typeSpecTarget, typeSpecSource) {
 
@@ -114,7 +248,7 @@ define([
    * Merges one property into a target object,
    * given the source property name and value.
    *
-   * @param {object} target The target object.
+   * @param {!Object} target The target object.
    * @param {string} name The source property name.
    * @param {any} sourceValue The source property value.
    */
@@ -146,6 +280,14 @@ define([
     handler(target, name, sourceValue);
   }
 
+  /**
+   * Performs the merge operation when the target value is also a plain object,
+   * or replaces it, if not.
+   *
+   * @param {!Object} target The target object.
+   * @param {string} name The source property name.
+   * @param {!Object} sourceValue The source property value.
+   */
   function mergeSpecsOperMerge(target, name, sourceValue) {
     // Is `targetValue` also a plain object?
     var targetValue = target[name];
@@ -155,11 +297,28 @@ define([
       mergeSpecsOperReplace(target, name, sourceValue);
   }
 
+  /**
+   * Replaces the target value with a deep, own clone of the source value.
+   *
+   * @param {!Object} target The target object.
+   * @param {string} name The source property name.
+   * @param {any} sourceValue The source property value.
+   */
   function mergeSpecsOperReplace(target, name, sourceValue) {
     // Clone source value so that future merges into it don't change it, inadvertently.
     target[name] = cloneOwnDeep(sourceValue);
   }
 
+  /**
+   * When both the source and target values are arrays,
+   * appends the source elements to the target array.
+   * Otherwise, replaces the target array with a deep,
+   * own clone of the source array.
+   *
+   * @param {!Object} target The target object.
+   * @param {string} name The source property name.
+   * @param {any} sourceValue The source property value.
+   */
   function mergeSpecsOperAdd(target, name, sourceValue) {
     // If both are arrays, append source to target, while cloning source elements.
     // Else, fallback to replace operation.
@@ -176,20 +335,9 @@ define([
   }
 
   /**
-   * Checks if a value is a plain JavaScript object.
+   * Creates a deep, own clone of a given value.
    *
-   * @param {any} value The value to check.
-   *
-   * @return {boolean} `true` if it is, `false` if not.
-   */
-  function isPlainJSObject(value) {
-    return (!!value) && (typeof value === "object") && (value.constructor === Object);
-  }
-
-  /**
-   * Deep clones a value.
-   *
-   * For plain object values, only their own properties are included.
+   * For plain object values, only their _own_ properties are included.
    *
    * @param {any} value The value to clone deeply.
    *
@@ -210,72 +358,24 @@ define([
 
     return value;
   }
+  //endregion
 
-  var _ruleCounter = 0;
+  /**
+   * Checks if a value is a plain JavaScript object.
+   *
+   * @param {any} value The value to check.
+   *
+   * @return {boolean} `true` if it is, `false` if not.
+   */
+  function isPlainJSObject(value) {
+    return (!!value) && (typeof value === "object") && (value.constructor === Object);
+  }
 
-  var ConfigurationService = Base.extend("pentaho.type.config.ConfigurationService", {
-    /**
-     * @private
-     */
-    _ruleStore: null,
-
-    constructor: function() {
-      this._ruleStore = {};
-    },
-
-    add: function(config) {
-      if (config.rules) {
-        config.rules.forEach(function(rule) {
-          this.addRule(rule);
-        }, this);
-      }
-    },
-
-    addRule: function(rule) {
-      // needed to make this explicit to keep the sorting
-      // algorithm stable (insertion order would be lost on resorts)
-      // also assuming the ConfigurationService takes ownership of
-      // the rules, so mutating it directly is ok
-      rule._ordinal = _ruleCounter++;
-
-      var select = rule.select || {};
-      var typeIds = select.type || ["pentaho/type/value"];
-      if (!Array.isArray(typeIds)) {
-        typeIds = [typeIds];
-      }
-
-      typeIds.forEach(function(typeId) {
-        var type = toAbsTypeId(typeId);
-
-        if (!this._ruleStore[type]) {
-          this._ruleStore[type] = new SortedList({"comparer": _ruleComparer});
-        }
-
-        this._ruleStore[type].push(rule);
-      }, this);
-    },
-
-    select: function(typeId, criteria) {
-      var type = toAbsTypeId(typeId);
-
-      var rules = this._ruleStore[type] || [];
-      var filtered_rules = rules.filter(_ruleFilterer, criteria || {});
-      var configs = filtered_rules.map(function(rule) {
-        return rule.apply;
-      });
-
-      if (configs.length === 0) {
-        return null;
-      }
-
-      var config = configs.reduce(mergeSpecsInto, {});
-
-      return config;
-    }
-  });
-
-  return ConfigurationService;
-
+  /**
+   * Ensures that standard value type ids are made absolute.
+   *
+   * @param {string} id A value type id.
+   */
   function toAbsTypeId(id) {
     return id.indexOf("/") < 0 ? ("pentaho/type/" + id) : id;
   }
