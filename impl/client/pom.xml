@@ -17,16 +17,30 @@
     for each of the constituents (e.g. vizapi, prompting) of the current artifact.</description>
 
   <properties>
-    <js.project.list>dojo,dijit,jquery,pentaho-cdf-js,dojo-release,angular,angular-mocks,angular-resource,angular-route,angular-animate</js.project.list>
+    <js.project.list>dojo,dijit,jquery,pentaho-cdf-js,dojo-release,angular,angular-mocks,angular-resource,angular-route,angular-animate,ccc</js.project.list>
     <build.javascriptReportDirectory>target/js-reports</build.javascriptReportDirectory>
     <pentaho-cdf-plugin.version>8.2.0.0-SNAPSHOT</pentaho-cdf-plugin.version>
-
+    <pentaho-ccc-plugin.version>8.2.0.0-SNAPSHOT</pentaho-ccc-plugin.version>
     <docjs.config.file>jsdoc-vizapi.json</docjs.config.file>
     <docjs.config.github.branch>master</docjs.config.github.branch>
     <docjs.config.template.directory>${project.basedir}/src/doc/javascript/template</docjs.config.template.directory>
+    <js.build.optimizer>uglify2</js.build.optimizer>
+    <requirejs.config.files.pattern>**/*-require-js-cfg.js</requirejs.config.files.pattern>
   </properties>
 
   <dependencies>
+    <!--<dependency>-->
+      <!--<groupId>org.webjars</groupId>-->
+      <!--<artifactId>rjs</artifactId>-->
+      <!--<version>${rjs.version}</version>-->
+    <!--</dependency>-->
+    <dependency>
+      <groupId>org.pentaho.ctools</groupId>
+      <artifactId>ccc</artifactId>
+      <version>${pentaho-ccc-plugin.version}</version>
+      <type>zip</type>
+      <scope>runtime</scope>
+    </dependency>
     <dependency>
       <groupId>org.webjars.bower</groupId>
       <artifactId>dojo</artifactId>
@@ -54,7 +68,7 @@
       <artifactId>pentaho-cdf-js</artifactId>
       <version>${pentaho-cdf-plugin.version}</version>
       <type>zip</type>
-      <scope>test</scope>
+      <!--<scope>test</scope>-->
       <exclusions>
         <exclusion>
           <artifactId>*</artifactId>
@@ -134,15 +148,34 @@
         <executions>
           <execution>
             <id>copy-javascript-resources</id>
-            <phase>process-resources</phase>
+            <phase>${javascript_unpack-dependencies-phase}</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <outputDirectory>${build.dependenciesDirectory}/common-ui</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${build.javascriptSourceDirectory}</directory>
+                  <directory>${build.javascriptSourceDirectory}/web</directory>
+                </resource>
+                <resource>
+                  <filtering>true</filtering>
+                  <directory>${basedir}/src/main/resources-filtered</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-dependency-js</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/src-javascript</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${build.dependenciesDirectory}</directory>
                 </resource>
               </resources>
             </configuration>

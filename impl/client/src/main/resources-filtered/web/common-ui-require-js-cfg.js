@@ -58,7 +58,7 @@
   [
     "shim", "util", "lang",
     "i18n", "service", "data", "type", "typeInfo", "instanceInfo",
-    "visual", "config", "environment", "debug", "ccc"
+    "visual", "config", "environment", "debug", "ccc", "platformBundle"
   ].forEach(function(name) {
     requirePaths["pentaho/" + name] = basePath + "/pentaho/" + name;
   });
