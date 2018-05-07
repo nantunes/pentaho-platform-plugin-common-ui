@@ -28,7 +28,7 @@
   //If this option is specified, then all the files from the app directory
   //will be copied to the dir: output area, and baseUrl will assume to be
   //a relative path under this directory.
-  appDir: "${project.build.directory}/src-javascript",
+  appDir: "${project.build.outputDirectory}/web",
 
   //How to optimize all the JS files in the build output directory.
   optimize: "${js.build.optimizer}",
@@ -38,7 +38,7 @@
   baseUrl: ".",
 
   //The directory path to save the output. All relative paths are relative to the build file.
-  dir: "${project.build.directory}/build-javascript",
+  dir: "${project.build.outputDirectory}/web/compressed",
 
   //As of RequireJS 2.0.2, the dir above will be deleted before the
   //build starts again. If you have a big build and are not doing
@@ -53,7 +53,15 @@
   skipDirOptimize: false,
 
   paths: {
+    "cdf/lib/CCC/def": "empty:",
+    "cdf/lib/CCC/pvc": "empty:",
+    "cdf/lib/CCC/cdo": "empty:",
+    "cdf/lib/CCC/protovis": "empty:",
 
+    // Exclude AMD loader plugins
+    "css": "empty:",
+    "text": "empty:",
+    "json": "empty:"
   },
 
   mainConfigFile: '${project.build.directory}/requireCfg.js',
@@ -93,6 +101,10 @@
   //removed from the output folder.
   removeCombined: true,
 
+  // Do not write a build.txt file in the output folder.
+  // Introduced in 2.2.0, will only work when r.js is upgraded.
+  writeBuildTxt: false,
+
   //By default, comments that have a license in them are preserved in the
   //output when a minifier is used in the "optimize" option.
   //However, for a larger built files there could be a lot of
@@ -114,30 +126,9 @@
         "pentaho/service"
       ],
       exclude: [
-        // Exclude AMD loader plugins
-        // "cdf/lib/require-css/css",
-        // "common-ui/util/require-css/css",
-        // "pentaho/type/themes/ruby/model",
-        // "common-ui/util/require-text/text",
-
-        // Exclude CSS's that contain url(...) as these get messed up.
-        // Must exclude the JS that asks for a CSS with the same name:
+        // Exclude virtual theme module IDs
         "pentaho/visual/models/theme/model",
-        "pentaho/type/theme/model",
-
-        "cdf/lib/CCC/def",
-        "cdf/lib/CCC/pvc",
-        "cdf/lib/CCC/cdo",
-        "cdf/lib/CCC/protovis",
-
-        "css",
-        "text",
-        "json"
-
-        // Unfortunately this is included as a global scope external resource (in common-ui).
-        // It is asked to requirejs synchronously, before our bundled version could be used.
-        // So there is no point in including it (and all of its dojo dependencies) in the bundle.
-        // "common-ui/util/URLEncoder"
+        "pentaho/type/theme/model"
       ],
       create: false
     }

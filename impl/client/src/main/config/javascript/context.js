@@ -33,9 +33,9 @@ var requireCfg = {
   packages: []
 };
 
-// Override CDF/AMD configuration to match its dependency folder layout
+// Override common-ui configuration to avoid default basePath
 var ENVIRONMENT_CONFIG = {
-  paths:{
-    cdf: "cdf/js"
+  paths: {
+    "common-ui": "."
   }
 };
