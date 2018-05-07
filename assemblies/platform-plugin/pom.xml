@@ -18,6 +18,7 @@
     of changes downstream, this module also produces the zip for the javascript sources (js classifier) and the
     java sources (sources classifier).</description>
   <properties>
+    <js.project.list>common-ui-impl-client</js.project.list>
     <webjars.target.directory>${prepared.assembly.directory}/webjars/META-INF/resources/webjars</webjars.target.directory>
     <js.assembly.directory>${project.build.directory}/${js.assembly.name}</js.assembly.directory>
     <prepared.assembly.name>extrated-resources</prepared.assembly.name>
@@ -36,6 +37,11 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>common-ui-impl-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>common-ui-impl-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

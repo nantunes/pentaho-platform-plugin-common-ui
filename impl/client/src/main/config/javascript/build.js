@@ -38,7 +38,7 @@
   baseUrl: ".",
 
   //The directory path to save the output. All relative paths are relative to the build file.
-  dir: "${project.build.directory}/build-javascript/",
+  dir: "${project.build.directory}/build-javascript",
 
   //As of RequireJS 2.0.2, the dir above will be deleted before the
   //build starts again. If you have a big build and are not doing
@@ -50,13 +50,10 @@
 
   optimizeCss: "none",
 
-  skipDirOptimize: true,
+  skipDirOptimize: false,
 
   paths: {
-    'cdf/lib/CCC':'ccc/amd'
-    // 'json': 'util/require-json/json',
-    // 'text': 'util/require-text/text',
-    // 'css': 'util/require-css/css'
+
   },
 
   mainConfigFile: '${project.build.directory}/requireCfg.js',
@@ -74,7 +71,7 @@
   // the output of this file actually has to be adapted for this to work.
   // Again. Post-8.0, a smoother workflow can be devised.
 
-  //bundlesConfigOutFile: '${project.build.sourceDirectory}/requireBundlesCfg.js',
+  bundlesConfigOutFile: '${basedir}/src/main/config/resources/requireCfg.bundles.js',
 
   //If using UglifyJS2 for script optimization, these config options can be
   //used to pass configuration values to UglifyJS2.
@@ -111,6 +108,11 @@
   modules: [
     {
       name: "pentaho/platformBundle",
+      excludeShallow: [
+        "pentaho/i18n",
+        "pentaho/i18n/MessageBundle",
+        "pentaho/service"
+      ],
       exclude: [
         // Exclude AMD loader plugins
         // "cdf/lib/require-css/css",
@@ -120,9 +122,17 @@
 
         // Exclude CSS's that contain url(...) as these get messed up.
         // Must exclude the JS that asks for a CSS with the same name:
-        // "common-ui/util/require-css/css!pentaho/visual/models/themes/crystal/model",
-        // "pentaho/visual/models/theme/model",
-        // "pentaho/type/theme/model",
+        "pentaho/visual/models/theme/model",
+        "pentaho/type/theme/model",
+
+        "cdf/lib/CCC/def",
+        "cdf/lib/CCC/pvc",
+        "cdf/lib/CCC/cdo",
+        "cdf/lib/CCC/protovis",
+
+        "css",
+        "text",
+        "json"
 
         // Unfortunately this is included as a global scope external resource (in common-ui).
         // It is asked to requirejs synchronously, before our bundled version could be used.

@@ -17,10 +17,9 @@
     for each of the constituents (e.g. vizapi, prompting) of the current artifact.</description>
 
   <properties>
-    <js.project.list>dojo,dijit,jquery,pentaho-cdf-js,dojo-release,angular,angular-mocks,angular-resource,angular-route,angular-animate,ccc</js.project.list>
+    <js.project.list>dojo,dijit,jquery,pentaho-cdf-js,dojo-release,angular,angular-mocks,angular-resource,angular-route,angular-animate</js.project.list>
     <build.javascriptReportDirectory>target/js-reports</build.javascriptReportDirectory>
     <pentaho-cdf-plugin.version>8.2.0.0-SNAPSHOT</pentaho-cdf-plugin.version>
-    <pentaho-ccc-plugin.version>8.2.0.0-SNAPSHOT</pentaho-ccc-plugin.version>
     <docjs.config.file>jsdoc-vizapi.json</docjs.config.file>
     <docjs.config.github.branch>master</docjs.config.github.branch>
     <docjs.config.template.directory>${project.basedir}/src/doc/javascript/template</docjs.config.template.directory>
@@ -29,18 +28,6 @@
   </properties>
 
   <dependencies>
-    <!--<dependency>-->
-      <!--<groupId>org.webjars</groupId>-->
-      <!--<artifactId>rjs</artifactId>-->
-      <!--<version>${rjs.version}</version>-->
-    <!--</dependency>-->
-    <dependency>
-      <groupId>org.pentaho.ctools</groupId>
-      <artifactId>ccc</artifactId>
-      <version>${pentaho-ccc-plugin.version}</version>
-      <type>zip</type>
-      <scope>runtime</scope>
-    </dependency>
     <dependency>
       <groupId>org.webjars.bower</groupId>
       <artifactId>dojo</artifactId>
@@ -68,7 +55,7 @@
       <artifactId>pentaho-cdf-js</artifactId>
       <version>${pentaho-cdf-plugin.version}</version>
       <type>zip</type>
-      <!--<scope>test</scope>-->
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <artifactId>*</artifactId>
@@ -147,6 +134,24 @@
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
           <execution>
+            <id>copy-requireCfg-bundles</id>
+            <phase>${javascript_unpack-dependencies-phase}</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${build.directory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/config/resources</directory>
+                  <includes>
+                    <include>requireCfg.bundles.js</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
             <id>copy-javascript-resources</id>
             <phase>${javascript_unpack-dependencies-phase}</phase>
             <goals>
@@ -160,7 +165,26 @@
                 </resource>
                 <resource>
                   <filtering>true</filtering>
-                  <directory>${basedir}/src/main/resources-filtered</directory>
+                  <directory>${basedir}/src/main/resources-filtered/web</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-javascript-sources</id>
+            <phase>${javascript_unpack-dependencies-phase}</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${build.outputDirectory}/web</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${build.javascriptSourceDirectory}/web</directory>
+                </resource>
+                <resource>
+                  <filtering>true</filtering>
+                  <directory>${basedir}/src/main/resources-filtered/web</directory>
                 </resource>
               </resources>
             </configuration>
@@ -175,7 +199,31 @@
               <outputDirectory>${project.build.directory}/src-javascript</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${build.dependenciesDirectory}</directory>
+                  <targetPath>${project.build.directory}/src-javascript/cdf</targetPath>
+                  <directory>${build.dependenciesDirectory}/cdf</directory>
+                </resource>
+                <resource>
+                  <targetPath>${project.build.directory}/src-javascript/common-ui</targetPath>
+                  <directory>${build.dependenciesDirectory}/common-ui</directory>
+                  <excludes>
+                    <exclude>require.js</exclude>
+                    <exclude>requireCfg.js</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-build-javascript-to-compressed</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${build.outputDirectory}/web/compressed</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/build-javascript/common-ui</directory>
                 </resource>
               </resources>
             </configuration>

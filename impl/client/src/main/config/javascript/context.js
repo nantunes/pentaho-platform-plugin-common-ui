@@ -32,3 +32,10 @@ var requireCfg = {
   },
   packages: []
 };
+
+// Override CDF/AMD configuration to match its dependency folder layout
+var ENVIRONMENT_CONFIG = {
+  paths:{
+    cdf: "cdf/js"
+  }
+};
