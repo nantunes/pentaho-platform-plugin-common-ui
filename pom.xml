@@ -31,7 +31,7 @@
   <properties>
     <jquery.version>1.12.4</jquery.version>
     <dojo.version>1.9.2</dojo.version>
-    <angular.version>1.5.8</angular.version>
+    <angular.version>1.7.8</angular.version>
     <jquery-i18n-properties.version>1.0.9</jquery-i18n-properties.version>
     <angular-translate.version>2.2.0-canary-pentaho-modified</angular-translate.version>
     <pentaho-cdf-plugin.version>8.3.0.0-SNAPSHOT</pentaho-cdf-plugin.version>
